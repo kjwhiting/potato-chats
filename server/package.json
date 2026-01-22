@@ -1,0 +1,31 @@
+{
+  "name": "potato-chats",
+  "version": "1.0.0",
+  "description": "AI chatbot about potatoes",
+  "main": "index.js",
+  "proxy": "http://localhost:5000",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "test": "vitest run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kjwhiting/potato-chats.git"
+  },
+  "keywords": [
+    "AI",
+    "Chatbot",
+    "Potatoes"
+  ],
+  "author": "Kyle Whiting",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kjwhiting/potato-chats/issues"
+  },
+  "homepage": "https://github.com/kjwhiting/potato-chats#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+  
+}
