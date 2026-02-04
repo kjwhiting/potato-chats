@@ -14,7 +14,10 @@ beforeEach(() => {
     ok: true,
     json: () =>
       Promise.resolve({
-        choices: [{ message: { content: "Default Mock Response" } }],
+        id: "test-chat-id",
+        msg: {
+          choices: [{ message: { content: "Default Mock Response" } }],
+        },
       }),
   });
 });

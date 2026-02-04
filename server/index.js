@@ -5,7 +5,7 @@ const { systemContext, aiModel } = require("./src/setup-ai");
 potatoChatsDB.connect();
 
 const app = express();
-app.use(express.json()); // Essential for parsing req.body
+app.use(express.json());
 
 app.put("/message/:id", async (req, res) => {
   const { id } = req.params;
@@ -38,11 +38,8 @@ app.put("/message/:id", async (req, res) => {
       aiData?.choices[0]?.message?.content |
       "There was an error, Try again. What questions do you have about potatoes?";
 
-    // 4. Save the new exchange to DB
-    // Assuming saveMessage handles storing the new user and bot entries
     await potatoChatsDB.saveMessage(id, userContent, botContent);
 
-    // 5. Return to frontend in the format Chat.jsx expects
     res.json({ id, msg: aiData });
   } catch (error) {
     console.error("Chat Update Error:", error);
@@ -51,7 +48,7 @@ app.put("/message/:id", async (req, res) => {
 });
 
 app.post("/message", async (req, res) => {
-  const chatId = Date.now();
+  const chatId = Date.now().toString();
   const userMsg = "Let me know when you're ready to get started";
 
   try {
@@ -79,6 +76,16 @@ app.post("/message", async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Failed to initialize chat" });
+  }
+});
+
+app.get("/chats", (req, res) => {
+  try {
+    const allMessages = potatoChatsDB.getAllChats();
+    res.json(allMessages);
+  } catch (error) {
+    console.error("Failed to fetch all chats:", error);
+    res.status(500).json({ error: "Could not retrieve potato archives." });
   }
 });
 

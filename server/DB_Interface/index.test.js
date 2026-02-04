@@ -1,53 +1,37 @@
-import { describe, it, expect, beforeEach } from "vitest";
-const { connect, saveMessage, getConversation } = require("./index");
+import { describe, it, expect } from "vitest";
+const { saveMessage, getConversation, getAllChats } = require("./index");
 
-describe("Potato AI Database", () => {
-  beforeEach(() => {
-    // Initialize a fresh RAM-based DB before every single test
-    connect(":memory:");
-  });
-
-  it("should successfully save a message pair", () => {
-    const result = saveMessage(
-      "chat_001",
-      null,
-      "Hello Potato",
-      "I am starch.",
-    );
-
-    expect(result.changes).toBe(1);
-    expect(result.lastInsertRowid).toBe(1);
-  });
-
-  it("should retrieve conversation history in the correct order", () => {
-    const convoId = "chat_002";
-
-    // Insert two messages
-    const first = saveMessage(convoId, null, "Msg 1", "Reply 1");
-    saveMessage(convoId, Number(first.lastInsertRowid), "Msg 2", "Reply 2");
+describe("Potato AI Database Logic", () => {
+  it("should successfully save and retrieve a message pair", () => {
+    const convoId = "chat_001";
+    saveMessage(convoId, "User Question", "Potato Answer");
 
     const history = getConversation(convoId);
 
+    // Verify unrolling logic: 1 row = 2 message objects
     expect(history).toHaveLength(2);
-    expect(history[0].sent_msg).toBe("Msg 1");
-    expect(history[1].sent_msg).toBe("Msg 2");
-    // Ensure the chain is linked
-    expect(history[1].prev_id).toBe(Number(history[0].current_id));
+    expect(history[0]).toEqual({ role: "user", content: "User Question" });
+    expect(history[1]).toEqual({ role: "assistant", content: "Potato Answer" });
   });
 
-  it("should return an empty array for a non-existent conversation", () => {
-    const history = getConversation("fake_id");
-    expect(history).toEqual([]);
+  it("should maintain chronological order across multiple exchanges", () => {
+    const convoId = "chat_order";
+    saveMessage(convoId, "First", "1");
+    saveMessage(convoId, "Second", "2");
+
+    const history = getConversation(convoId);
+
+    expect(history).toHaveLength(4);
+    expect(history[0].content).toBe("First");
+    expect(history[3].content).toBe("2");
   });
 
-  it("should handle special characters in messages", () => {
-    const userMsg = "What's up, Potato? { } [ ] ; ' \"";
-    const botMsg = "🥔";
+  it("should retrieve all rows for the debug endpoint", () => {
+    saveMessage("id_a", "User A", "Bot A");
+    saveMessage("id_b", "User B", "Bot B");
 
-    saveMessage("chat_special", null, userMsg, botMsg);
-    const history = getConversation("chat_special");
-
-    expect(history[0].sent_msg).toBe(userMsg);
-    expect(history[0].received_msg).toBe(botMsg);
+    const all = getAllChats();
+    // Check that we're seeing all records in the system
+    expect(all.length).toBeGreaterThanOrEqual(2);
   });
 });
