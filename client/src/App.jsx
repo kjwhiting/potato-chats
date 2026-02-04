@@ -1,21 +1,25 @@
-import { useEffect, useState } from 'react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import Chat from './components/chat';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+    },
+    mutations: {
+      retry: false,
+    },
+  },
+});
 
 function App() {
-  const [data, setData] = useState(null)
-
-  useEffect(() => {
-    fetch('/api/message')
-      .then(res => res.json())
-      .then(json => setData(json.text))
-      .catch(err => console.error("Connection failed:", err))
-  }, [])
-
   return (
-    <div>
-      <h1>Frontend + Backend Connection</h1>
-      <p>Message from Server: <strong>{data || 'Connecting...'}</strong></p>
-    </div>
-  )
+    <QueryClientProvider client={queryClient}>
+      <div className="app-wrapper">
+        <Chat />
+      </div>
+    </QueryClientProvider>
+  );
 }
 
-export default App
+export default App;

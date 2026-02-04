@@ -14,7 +14,6 @@ function connect(dbPath = "./potato_chat.db") {
     CREATE TABLE IF NOT EXISTS messages (
       current_id INTEGER PRIMARY KEY AUTOINCREMENT,
       id TEXT NOT NULL,
-      prev_id INTEGER,
       timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
       sent_msg TEXT,
       received_msg TEXT
@@ -24,25 +23,39 @@ function connect(dbPath = "./potato_chat.db") {
   return db;
 }
 
-function saveMessage(id, previd, userMsg, botMsg) {
+function saveMessage(id, userMsg, botMsg) {
   if (!db) throw new Error("Database not connected. Call connect() first.");
 
   const insert = db.prepare(`
-    INSERT INTO messages (id, prev_id, sent_msg, received_msg) 
-    VALUES (?, ?, ?, ?)
+    INSERT INTO messages (id, sent_msg, received_msg) 
+    VALUES (?, ?, ?)
   `);
-  return insert.run(id, previd, userMsg, botMsg);
+  return insert.run(id, userMsg, botMsg);
 }
 
 function getConversation(id) {
-  if (!db) throw new Error("Database not connected. Call connect() first.");
+  if (!db) throw new Error("Database not connected.");
 
   const query = db.prepare(`
-    SELECT * FROM messages 
+    SELECT sent_msg, received_msg 
+    FROM messages 
     WHERE id = ? 
     ORDER BY timestamp ASC
   `);
-  return query.all(id);
+
+  const rows = query.all(id);
+
+  const history = [];
+  rows.forEach((row) => {
+    if (row.sent_msg) {
+      history.push({ role: "user", content: row.sent_msg });
+    }
+    if (row.received_msg) {
+      history.push({ role: "assistant", content: row.received_msg });
+    }
+  });
+
+  return history;
 }
 
 module.exports = {
